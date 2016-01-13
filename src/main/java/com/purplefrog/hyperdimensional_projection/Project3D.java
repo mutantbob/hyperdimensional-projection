@@ -129,14 +129,14 @@ public class Project3D
         boolean xSide = (Math.floor(x) %2) ==0;
         boolean ySide = (Math.floor(y) %2) ==0;
         boolean zSide = (Math.floor(z) %2) ==0;
-        maybeAddFace(polys, Arrays.asList(p000, p001, p011, p010), xSide?xColor1:xColor2);
-        maybeAddFace(polys, Arrays.asList(p100, p101, p111, p110), xColor2);
+        maybeAddFace(polys, Arrays.asList(p000, p001, p011, p010),  xSide?xColor1:xColor2);
+        maybeAddFace(polys, Arrays.asList(p100, p101, p111, p110), !xSide?xColor1:xColor2);
 
         maybeAddFace(polys, Arrays.asList(p000, p010, p110, p100), zSide?zColor1:zColor2);
-        maybeAddFace(polys, Arrays.asList(p001, p011, p111, p101), zColor2);
+        maybeAddFace(polys, Arrays.asList(p001, p011, p111, p101), !zSide?zColor1:zColor2);
 
         maybeAddFace(polys, Arrays.asList(p000, p100, p101, p001), ySide?yColor1:yColor2);
-        maybeAddFace(polys, Arrays.asList(p010, p110, p111, p011), yColor2);
+        maybeAddFace(polys, Arrays.asList(p010, p110, p111, p011), !ySide?yColor1:yColor2);
     }
 
     public static void blender_dump(double[] ...points)
