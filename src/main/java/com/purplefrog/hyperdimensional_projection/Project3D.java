@@ -13,35 +13,34 @@ import java.util.List;
  */
 public class Project3D
 {
+
     public static void main(String[] argv)
     {
-        Random r = new Random(420);
+        JFrame fr = new JFrame("hyperdimensional projection");
 
-        Rotation rot = new Rotation(r.nextDouble(), r.nextDouble(), r.nextDouble(), r.nextDouble(), true);
+        Random rand = new Random();
 
-        RealMatrix m = new Array2DRowRealMatrix(rot.getMatrix());
-        m = to_4x4(m);
+        Rotation baseOrientation = Util.randomOrientation(rand);
+        Vector3D axis = Util.randomAxis(rand);
 
-        double w =16;
-        double h = 9;
-
-        List<Face> polys = facesForBoundary(m, w, h);
-
-        JFrame fr = new JFrame();
-        Canvas canvas = new FaceCanvas(polys);
-        fr.getContentPane().add(canvas);
+        if (false) {
+            baseOrientation = new Rotation(new Vector3D(0,0,1), 0, RotationConvention.VECTOR_OPERATOR);
+            axis = new Vector3D(0,1,0);
+        }
+        fr.getContentPane().add(new SpinProjectionCanvas(baseOrientation, axis));
+        fr.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         fr.pack();
         fr.setVisible(true);
-
-
     }
 
     public static List<Face> facesForBoundary(RealMatrix m, double w, double h)
     {
-        double[] c_ul = m.operate(new double[]{-w, h, 0, 1});
-        double[] c_ur = m.operate(new double[]{w, h, 0, 1});
-        double[] c_ll = m.operate(new double[]{-w, -h, 0, 1});
-        double[] c_lr = m.operate(new double[]{w, -h, 0, 1});
+        RealMatrix inv = new LUDecomposition(m).getSolver().getInverse();
+
+        double[] c_ul = inv.operate(new double[]{-w, h, 0, 1});
+        double[] c_ur = inv.operate(new double[]{w, h, 0, 1});
+        double[] c_ll = inv.operate(new double[]{-w, -h, 0, 1});
+        double[] c_lr = inv.operate(new double[]{w, -h, 0, 1});
 
         double[] c0 = min(c_ul, c_ur, c_ll, c_lr);
         double[] c1 = max(c_ul, c_ur, c_ll, c_lr);
@@ -90,6 +89,19 @@ public class Project3D
     static Color yColor1 = new Color(0.6f, 0f, 0f);
     static Color yColor2 = new Color(1f, 0f, 0f);
 
+    /**
+     * The fundamental logic at work here is that for a particular hypercell:
+     * It is on the "boundary" if some of its corners are on one side of the plane and other corners are on the other side of the plane.
+     * If all corners of a cell are on the same side of the plane (all inside or all outside) it is not on the boundary and will not be part of the render.
+     * The only faces that we will render are faces that are completely "inside" the half-plane.
+     * A cell face that is partly or completely outside the half-plane will not be rendered.
+     * <p>The definition of "inside the half-plane" is for p'=m*p that p'_z &lt;=0 .  outside means p'_z&gt;0 .
+     * @param polys faces that should be rendered will be added to this list.  The x and y coordinates will be based on p' (the cell corners multiplied by the half-plane projection matrix)
+     * @param x the corner of the cell
+     * @param y
+     * @param z
+     * @param m the affine matrix defining the half-plane; the projection matrix.
+     */
     public static void renderCell(List<Face> polys, double x, double y, double z, RealMatrix m)
     {
         double x2 = x+1;

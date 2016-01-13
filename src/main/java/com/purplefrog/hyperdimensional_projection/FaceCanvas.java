@@ -1,7 +1,12 @@
 package com.purplefrog.hyperdimensional_projection;
 
+import org.apache.commons.math3.geometry.euclidean.threed.*;
+import org.apache.commons.math3.linear.*;
+
+import javax.swing.*;
 import java.awt.*;
 import java.awt.geom.*;
+import java.util.*;
 
 /**
  * Created by thoth on 1/13/16.
@@ -67,6 +72,29 @@ public class FaceCanvas
             g2.setColor(poly.stroke);
             g2.draw(gp);
         }
+
+
+    }
+
+    public static void main(String[] argv)
+    {
+        Random r = new Random(420);
+
+        Rotation rot = Util.randomOrientation(r);
+
+        RealMatrix m = new Array2DRowRealMatrix(rot.getMatrix());
+        m = Project3D.to_4x4(m);
+
+        double w =16;
+        double h = 9;
+
+        java.util.List<Face> polys = Project3D.facesForBoundary(m, w, h);
+
+        JFrame fr = new JFrame();
+        Canvas canvas = new FaceCanvas(polys);
+        fr.getContentPane().add(canvas);
+        fr.pack();
+        fr.setVisible(true);
 
 
     }
